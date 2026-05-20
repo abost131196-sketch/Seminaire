@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mots Croisés Séminaire - Version Officielle</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #faf8f5;
+            color: #333;
+            margin: 0;
+            padding: 30px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin: 0 0 5px 0;
+            font-size: 26px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+            max-width: 1100px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: row;
+            gap: 40px;
+            justify-content: center;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        /* Crossword Grid Layout */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(13, 38px);
+            grid-template-rows: repeat(12, 38px);
+            gap: 0px;
+            background-color: #fcfcfc;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+        }
+
+        .cell {
+            width: 38px;
+            height: 38px;
+            box-sizing: border-box;
+            border: 1px solid transparent;
+            position: relative;
+        }
+
+        .cell.active {
+            background-color: #ffffff;
+            border: 1.5px solid #2c3e50;
+        }
+
+        .cell.mystery {
+            background-color: #fff9db; /* Highlight yellow as in the original pdf */
+            border-color: #f59f00;
+        }
+
+        .cell input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            outline: none;
+            padding: 0;
+            color: #2c3e50;
+        }
+
+        /* Number labels inside grid cells */
+        .word-indicator {
+            position: absolute;
+            top: 2px;
+            left: 3px;
+            font-size: 10px;
+            color: #2c3e50;
+            font-weight: bold;
+            pointer-events: none;
+            line-height: 1;
+            z-index: 5;
+        }
+
+        /* Mystery Badge Circle */
+        .mystery-circle {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 14px;
+            height: 14px;
+            background-color: #d9480f;
+            color: white;
+            border-radius: 50%;
+            font-size: 9px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* Clues styling */
+        .clues-side {
+            flex: 1;
+            min-width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .clue-block h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            color: #1a252f;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .clue-block ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .clue-block li {
+            margin-bottom: 12px;
+            font-size: 14px;
+            line-height: 1.45;
+            color: #4a5568;
+        }
+
+        .clue-block li strong {
+            color: #2c3e50;
+            display: inline-block;
+            width: 25px;
+        }
+
+        /* Mystery Word Footer Section */
+        .mystery-section {
+            border-top: 2px dashed #e2e8f0;
+            padding-top: 25px;
+            text-align: center;
+        }
+
+        .mystery-section h2 {
+            font-size: 18px;
+            color: #d9480f;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .mystery-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .mystery-cell {
+            width: 42px;
+            height: 42px;
+            border: 2px solid #d9480f;
+            background-color: #fff9db;
+            border-radius: 6px;
+            position: relative;
+        }
+
+        .mystery-cell input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            outline: none;
+            color: #d9480f;
+        }
+
+        .mystery-cell .under-num {
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 11px;
+            color: #718096;
+            font-weight: bold;
+        }
+
+        /* Action Buttons */
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-verify {
+            background-color: #2cc71;
+            background-color: #22c55e;
+            color: white;
+        }
+
+        .btn-verify:hover {
+            background-color: #16a34a;
+        }
+
+        .btn-reset {
+            background-color: #a0aec0;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background-color: #718096;
+        }
+
+        /* Interactive Feedback Classes */
+        .cell.correct input {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        .cell.incorrect input {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .mystery-cell.correct {
+            background-color: #dcfce7;
+        }
+
+        .mystery-cell.incorrect {
+            background-color: #fee2e2;
+        }
+
+        #status-message {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+            min-height: 22px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Séminaire - Mots Croisés</h1>
+    <div class="subtitle">Complétez la grille ci-dessous. Les cases jaunes remplissent automatiquement le mot mystère en bas !</div>
+
+    <div class="container">
+        <div class="game-area">
+            
+            <!-- Exact Crossword Grid from PDF Layout -->
+            <div class="grid-container" id="crossword-grid"></div>
+
+            <!-- Clues Section -->
+            <div class="clues-side">
+                <div class="clue-block">
+                    <h3>Horizontal</h3>
+                    <ul>
+                        <li><strong>5.</strong> Elle est comme neuve depuis l'opération de Régine (6)</li>
+                        <li><strong>6.</strong> Intolérance alimentaire de Laëtitia (6)</li>
+                        <li><strong>7.</strong> Signification du B de BRL (3)</li>
+                    </ul>
+                </div>
+                <div class="clue-block">
+                    <h3>Vertical</h3>
+                    <ul>
+                        <li><strong>1.</strong> Nom donné au site de la station de pompage de Bellegarde (7)</li>
+                        <li><strong>2.</strong> Mois d'arrivée de Fanny dans les équipes (4)</li>
+                        <li><strong>3.</strong> Futur lieu de résidence d'Anaïs (8)</li>
+                        <li><strong>4.</strong> Mois de naissance de Julie (7)</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Mystery Word Footer Rows -->
+        <div class="mystery-section">
+            <h2>Mot-solution</h2>
+            <div class="mystery-row">
+                <div class="mystery-cell" id="mc-1"><input type="text" maxlength="1" disabled><span class="under-num">1</span></div>
+                <div class="mystery-cell" id="mc-2"><input type="text" maxlength="1" disabled><span class="under-num">2</span></div>
+                <div class="mystery-cell" id="mc-3"><input type="text" maxlength="1" disabled><span class="under-num">3</span></div>
+                <div class="mystery-cell" id="mc-4"><input type="text" maxlength="1" disabled><span class="under-num">4</span></div>
+                <div class="mystery-cell" id="mc-5"><input type="text" maxlength="1" disabled><span class="under-num">5</span></div>
+                <div class="mystery-cell" id="mc-6"><input type="text" maxlength="1" disabled><span class="under-num">6</span></div>
+                <div class="mystery-cell" id="mc-7"><input type="text" maxlength="1" disabled><span class="under-num">7</span></div>
+                <div class="mystery-cell" id="mc-8"><input type="text" maxlength="1" disabled><span class="under-num">8</span></div>
+            </div>
+
+            <div class="actions">
+                <button class="btn-verify" onclick="verifyPuzzle()">Vérifier les réponses</button>
+                <button class="btn-reset" onclick="resetPuzzle()">Réinitialiser</button>
+            </div>
+
+            <div id="status-message"></div>
+        </div>
+    </div>
+
+    <script>
+        const ROWS = 12;
+        const COLS = 13;
+
+        const solution = Array(ROWS).fill(null).map(() => Array(COLS).fill(''));
+        
+        // Exact 100% accurate replication of Crossword-Séminaire_Answer.pdf
+        // Vertical 1: PICHEGU (Col 6, Rows 0-6)
+        solution[0][6] = 'P'; solution[1][6] = 'I'; solution[2][6] = 'C'; solution[3][6] = 'H'; solution[4][6] = 'E'; solution[5][6] = 'G'; solution[6][6] = 'U';
+        
+        // Vertical 2: MARS (Col 2, Rows 3-6)
+        solution[3][2] = 'M'; solution[4][2] = 'A'; solution[5][2] = 'R'; solution[6][2] = 'S';
+        
+        // Vertical 3: TOULOUSE (Col 8, Rows 3-10)
+        solution[3][8] = 'T'; solution[4][8] = 'O'; solution[5][8] = 'U'; solution[6][8] = 'L'; solution[7][8] = 'O'; solution[8][8] = 'U'; solution[9][8] = 'S'; solution[10][8] = 'E';
+        
+        // Vertical 4: JANVIER (Col 11, Rows 3-9)
+        solution[3][11] = 'J'; solution[4][11] = 'A'; solution[5][11] = 'N'; solution[6][11] = 'V'; solution[7][11] = 'I'; solution[8][11] = 'E'; solution[9][11] = 'R';
+        
+        // Horizontal 5: HANCHE (Row 4, Cols 1-6)
+        solution[4][1] = 'H'; solution[4][2] = 'A'; solution[4][3] = 'N'; solution[4][4] = 'C'; solution[4][5] = 'H'; solution[4][6] = 'E';
+        
+        // Horizontal 6: GLUTEN (Row 5, Cols 6-11)
+        solution[5][6] = 'G'; solution[5][7] = 'L'; solution[5][8] = 'U'; solution[5][9] = 'T'; solution[5][10] = 'E'; solution[5][11] = 'N';
+        
+        // Horizontal 7: BAS (Row 9, Cols 6-8)
+        solution[9][6] = 'B'; solution[9][7] = 'A'; solution[9][8] = 'S';
+
+        // Starting labels inside cells matching PuzzlaGenio numbering
+        const cellLabels = {
+            "0-6": "1",
+            "3-2": "2",
+            "3-8": "3",
+            "3-11": "4",
+            "4-1": "5",
+            "5-6": "6",
+            "9-6": "7"
+        };
+
+        // Mystery circles mappings matching exactly the solution layout
+        const mysteryCircles = {
+            "2-6": 1,   // 'C' inside PICHEGU
+            "4-11": 2,  // 'A' inside JANVIER
+            "3-2": 3,   // 'M' inside MARS
+            "9-7": 4,   // 'A' inside BAS
+            "9-11": 5,  // 'R' inside JANVIER
+            "5-6": 6,   // 'G' inside GLUTEN
+            "8-8": 7,   // 'U' inside TOULOUSE
+            "5-10": 8   // 'E' inside GLUTEN
+        };
+
+        const mysteryTarget = "CAMARGUE";
+
+        // Build HTML Elements
+        const gridContainer = document.getElementById('crossword-grid');
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                
+                const key = `${r}-${c}`;
+                if (solution[r][c] !== '') {
+                    cell.classList.add('active');
+                    
+                    if (mysteryCircles[key]) {
+                        cell.classList.add('mystery');
+                    }
+                    
+                    if (cellLabels[key]) {
+                        const lbl = document.createElement('span');
+                        lbl.classList.add('word-indicator');
+                        lbl.innerText = cellLabels[key];
+                        cell.appendChild(lbl);
+                    }
+                    
+                    if (mysteryCircles[key]) {
+                        const circle = document.createElement('span');
+                        circle.classList.add('mystery-circle');
+                        circle.innerText = mysteryCircles[key];
+                        cell.appendChild(circle);
+                    }
+                    
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.maxLength = 1;
+                    input.dataset.row = r;
+                    input.dataset.col = c;
+                    
+                    input.addEventListener('input', (e) => {
+                        const val = e.target.value.toUpperCase();
+                        e.target.value = val;
+                        
+                        if (mysteryCircles[key]) {
+                            const mCell = document.getElementById(`mc-${mysteryCircles[key]}`);
+                            mCell.querySelector('input').value = val;
+                        }
+                        
+                        if (val.length === 1) {
+                            autoMoveFocus(r, c, true);
+                        }
+                    });
+
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === "Backspace" && e.target.value === "") {
+                            autoMoveFocus(r, c, false);
+                        }
+                    });
+                    
+                    cell.appendChild(input);
+                }
+                gridContainer.appendChild(cell);
+            }
+        }
+
+        function autoMoveFocus(r, c, forward) {
+            let nextInput = null;
+            if (forward) {
+                // look next horizontally first, then vertically
+                nextInput = document.querySelector(`input[data-row="${r}"][data-col="${c+1}"]`) || 
+                            document.querySelector(`input[data-row="${r+1}"][data-col="${c}"]`);
+            } else {
+                nextInput = document.querySelector(`input[data-row="${r}"][data-col="${c-1}"]`) || 
+                            document.querySelector(`input[data-row="${r-1}"][data-col="${c}"]`);
+            }
+            if (nextInput) nextInput.focus();
+        }
+
+        function verifyPuzzle() {
+            let allCorrect = true;
+            const inputs = document.querySelectorAll('.cell.active input');
+            
+            inputs.forEach(input => {
+                const r = parseInt(input.dataset.row);
+                const c = parseInt(input.dataset.col);
+                const parent = input.parentElement;
+                parent.classList.remove('correct', 'incorrect');
+                
+                if (input.value.toUpperCase() === solution[r][c]) {
+                    parent.classList.add('correct');
+                } else {
+                    parent.classList.add('incorrect');
+                    allCorrect = false;
+                }
+            });
+
+            for (let i = 1; i <= 8; i++) {
+                const mCell = document.getElementById(`mc-${i}`);
+                const mInput = mCell.querySelector('input');
+                mCell.classList.remove('correct', 'incorrect');
+                
+                if (mInput.value.toUpperCase() === mysteryTarget[i-1]) {
+                    mCell.classList.add('correct');
+                } else {
+                    mCell.classList.add('incorrect');
+                    allCorrect = false;
+                }
+            }
+
+            const msg = document.getElementById('status-message');
+            if (allCorrect) {
+                msg.style.color = '#22c55e';
+                msg.innerText = "Félicitations ! Toutes vos réponses sont correctes. Le mot-solution est bien CAMARGUE ! 🎉";
+            } else {
+                msg.style.color = '#dc2626';
+                msg.innerText = "Certaines cases contiennent des erreurs ou sont vides. Vérifiez les cases surlignées en rouge !";
+            }
+        }
+
+        function resetPuzzle() {
+            document.querySelectorAll('input').forEach(input => input.value = '');
+            document.querySelectorAll('.cell').forEach(c => c.classList.remove('correct', 'incorrect'));
+            document.querySelectorAll('.mystery-cell').forEach(c => c.classList.remove('correct', 'incorrect'));
+            document.getElementById('status-message').innerText = '';
+        }
+    </script>
+</body>
+</html>
